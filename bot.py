@@ -4,8 +4,8 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 import yt_dlp
 
-# 🔐 Load Bot Token from environment variable
-TOKEN = os.getenv("8139941411:AAGgOIb-DUP35-qQ44lgfh6USVDHwtY1y18")
+# ✅ Bot token (hardcoded — only for private use)
+TOKEN = "8139941411:AAGgOIb-DUP35-qQ44lgfh6USVDHwtY1y18"
 
 # 📌 /start command handler
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -16,16 +16,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "👑 Owner - @its_lucifer_star"
     )
 
-
 # 📌 Validate URL
 def is_valid_url(url):
     regex = re.compile(
         r'^(?:http|ftp)s?://'  # http:// or https://
-        r'(?:[a-zA-Z0-9]|[$-_@.&+]|[!*\(\),]|'
+        r'(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|'
         r'(?:%[0-9a-fA-F][0-9a-fA-F]))+'
     )
     return re.match(regex, url)
-
 
 # 📌 Video download handler
 async def download_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -62,7 +60,6 @@ async def download_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await update.message.reply_text(f"⚠️ Error: {e}")
 
-
 # 📌 Audio download handler
 async def download_audio(update: Update, context: ContextTypes.DEFAULT_TYPE):
     url = update.message.text
@@ -84,6 +81,7 @@ async def download_audio(update: Update, context: ContextTypes.DEFAULT_TYPE):
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
             filename = ydl.prepare_filename(info)
+            # Ensure proper audio filename extension
             if filename.endswith('.webm') or filename.endswith('.m4a'):
                 filename = filename.rsplit('.', 1)[0] + '.mp3'
 
@@ -104,7 +102,6 @@ async def download_audio(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     except Exception as e:
         await update.message.reply_text(f"⚠️ Error: {e}")
-
 
 # 📌 Bot application setup
 app = ApplicationBuilder().token(TOKEN).build()
