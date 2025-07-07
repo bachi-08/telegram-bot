@@ -3,16 +3,17 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 import yt_dlp
 
-# ✅ Add your bot token here
+# ✅ Your bot token
 TOKEN = "8139941411:AAGgOIb-DUP35-qQ44lgfh6USVDHwtY1y18"
 
 logging.basicConfig(level=logging.INFO)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("👋 Send me any public video link from YouTube, Instagram, Facebook, etc.")
+    await update.message.reply_text("👋 Send me a public video link from YouTube, Instagram, Facebook, etc.")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     url = update.message.text.strip()
+
     if not url.startswith("http"):
         await update.message.reply_text("⚠️ Please send a valid video link.")
         return
@@ -21,8 +22,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         ydl_opts = {
-            'outtmpl': '%(title)s.%(ext)s',
-            'format': 'bestvideo+bestaudio/best',
+            'quiet': True,
+            'skip_download': True,
+            'format': 'best',
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -30,7 +32,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             video_url = info.get("url")
             title = info.get("title")
 
-            await update.message.reply_text(f"✅ Title: {title}\n🔗 Download: {video_url}")
+        await update.message.reply_text(f"✅ Title: {title}\n🔗 Download: {video_url}")
 
     except Exception as e:
         await update.message.reply_text(f"⚠️ Error: {str(e)}")
