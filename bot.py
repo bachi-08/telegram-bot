@@ -1,12 +1,11 @@
+import os
+import re
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 import yt_dlp
-import os
-import re
 
-# 📌 Your Bot Token
-TOKEN = '8139941411:AAGgOIb-DUP35-qQ44lgfh6USVDHwtY1y18'  # << Replace this with your actual bot token
-
+# 🔐 Load Bot Token from environment variable
+TOKEN = os.getenv("8139941411:AAGgOIb-DUP35-qQ44lgfh6USVDHwtY1y18")
 
 # 📌 /start command handler
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -22,7 +21,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def is_valid_url(url):
     regex = re.compile(
         r'^(?:http|ftp)s?://'  # http:// or https://
-        r'(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|'
+        r'(?:[a-zA-Z0-9]|[$-_@.&+]|[!*\(\),]|'
         r'(?:%[0-9a-fA-F][0-9a-fA-F]))+'
     )
     return re.match(regex, url)
@@ -85,7 +84,6 @@ async def download_audio(update: Update, context: ContextTypes.DEFAULT_TYPE):
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
             filename = ydl.prepare_filename(info)
-            # Ensure proper audio filename extension
             if filename.endswith('.webm') or filename.endswith('.m4a'):
                 filename = filename.rsplit('.', 1)[0] + '.mp3'
 
