@@ -4,101 +4,89 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 import yt_dlp
 
-TOKEN = "8139941411:AAGgOIb-DUP35-qQ44lgfh6USVDHwtY1y18"  # Your bot token here
+# 🔐 Your Telegram Bot Token (hardcoded here)
+TOKEN = "8139941411:AAGgOIb-DUP35-qQ44lgfh6USVDHwtY1y18"
 
+# 🔎 Validate URL
 def is_valid_url(url):
-    regex = re.compile(r'^(?:http|ftp)s?://[^\s]+$')
-    return re.match(regex, url)
+    return re.match(r'https?://', url)
 
+# 🟢 /start command
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "👋 Send me any video link (YouTube, Instagram, Facebook, Twitter, etc.)\n"
-        "I'll try to download it for you!\n"
-        "Use /audio to download audio only."
+        "👋 Welcome to Team HR Downloader Bot!\n\n"
+        "📥 Send me any **public video link** (YouTube, Instagram, TikTok, Twitter, etc), and I'll download it!\n\n"
+        "🎵 Use /audio for audio only.\n\n"
+        "❌ Private or login-required videos are not supported.\n\n"
+        "👑 Owner - @its_lucifer_star"
     )
 
+# 📥 Video Downloader
 async def download_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
     url = update.message.text.strip()
+
     if not is_valid_url(url):
-        await update.message.reply_text("⚠️ Please send a valid URL.")
+        await update.message.reply_text("⚠️ Please send a valid video link.")
         return
 
-    await update.message.reply_text("📥 Downloading your video...")
-
-    ydl_opts = {
-        'outtmpl': 'video.%(ext)s',
-        'format': 'best[ext=mp4]/best',
-        'noplaylist': True,
-        'quiet': True,
-        'no_warnings': True,
-        'ignoreerrors': True,
-        'retries': 3,
-    }
+    await update.message.reply_text("📥 Downloading your video... Please wait.")
 
     try:
+        ydl_opts = {
+            'format': 'best',
+            'outtmpl': 'video.%(ext)s'
+        }
+
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
-            if info is None:
-                await update.message.reply_text("⚠️ Could not download this video.")
-                return
             filename = ydl.prepare_filename(info)
 
-        caption = f"🎬 <b>Title:</b> {info.get('title', 'N/A')}\n"
-        caption += f"📺 <b>Uploader:</b> {info.get('uploader', 'N/A')}\n"
-        caption += "\n👑 Powered by @its_lucifer_star"
-
         with open(filename, 'rb') as f:
-            await update.message.reply_video(f, caption=caption, parse_mode="HTML")
+            await update.message.reply_video(f, caption=f"🎬 {info.get('title', 'Your Video')}\n\n👑 Powered by @its_lucifer_star")
 
         os.remove(filename)
 
     except Exception as e:
-        await update.message.reply_text(f"⚠️ Error: {str(e)}")
+        await update.message.reply_text(f"⚠️ Error: {str(e)}\n\n❗ This video may be private, restricted, or require login (not supported).")
 
+# 🔊 Audio Downloader
 async def download_audio(update: Update, context: ContextTypes.DEFAULT_TYPE):
     url = update.message.text.strip()
+
     if not is_valid_url(url):
-        await update.message.reply_text("⚠️ Please send a valid URL.")
+        await update.message.reply_text("⚠️ Please send a valid video link.")
         return
 
-    await update.message.reply_text("🎶 Downloading audio...")
-
-    ydl_opts = {
-        'outtmpl': 'audio.%(ext)s',
-        'format': 'bestaudio/best',
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': '192',
-        }],
-        'quiet': True,
-        'no_warnings': True,
-        'ignoreerrors': True,
-        'retries': 3,
-    }
+    await update.message.reply_text("🎵 Downloading audio... Please wait.")
 
     try:
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'outtmpl': 'audio.%(ext)s',
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }]
+        }
+
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
-            if info is None:
-                await update.message.reply_text("⚠️ Could not download this audio.")
-                return
             filename = ydl.prepare_filename(info)
-            if filename.endswith(('.webm', '.m4a')):
+
+            # Make sure it's .mp3
+            if not filename.endswith('.mp3'):
                 filename = filename.rsplit('.', 1)[0] + '.mp3'
 
-        caption = f"🎵 <b>Title:</b> {info.get('title', 'N/A')}\n"
-        caption += f"📺 <b>Uploader:</b> {info.get('uploader', 'N/A')}\n"
-        caption += "\n👑 Powered by @its_lucifer_star"
-
         with open(filename, 'rb') as f:
-            await update.message.reply_audio(f, caption=caption, parse_mode="HTML")
+            await update.message.reply_audio(f, caption=f"🎵 {info.get('title', 'Your Audio')}\n\n👑 Powered by @its_lucifer_star")
 
         os.remove(filename)
 
     except Exception as e:
-        await update.message.reply_text(f"⚠️ Error: {str(e)}")
+        await update.message.reply_text(f"⚠️ Error: {str(e)}\n\n❗ This video may be private, restricted, or require login (not supported).")
 
+# 🚀 Launch the bot
 app = ApplicationBuilder().token(TOKEN).build()
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("audio", download_audio))
