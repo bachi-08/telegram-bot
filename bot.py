@@ -4,10 +4,10 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 import yt_dlp
 
-# ✅ Bot token (hardcoded — only for private use)
+# ✅ Bot Token (hardcoded)
 TOKEN = "8139941411:AAGgOIb-DUP35-qQ44lgfh6USVDHwtY1y18"
 
-# 📌 /start command handler
+# 📌 /start command
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "👋 Welcome To Team HR Bot!\n\n"
@@ -16,7 +16,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "👑 Owner - @its_lucifer_star"
     )
 
-# 📌 Validate URL
+# 📌 URL validation
 def is_valid_url(url):
     regex = re.compile(
         r'^(?:http|ftp)s?://'  # http:// or https://
@@ -25,7 +25,7 @@ def is_valid_url(url):
     )
     return re.match(regex, url)
 
-# 📌 Video download handler
+# 📥 Video Download
 async def download_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
     url = update.message.text
     if not is_valid_url(url):
@@ -36,31 +36,28 @@ async def download_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         ydl_opts = {
             'outtmpl': 'video.%(ext)s',
-            'format': 'best'
+            'format': 'best',
+            'cookiefile': 'cookies.txt'  # ✅ Uses Instagram login cookies
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
             filename = ydl.prepare_filename(info)
 
-        caption_text = f"🎬 <b>Title:</b> {info.get('title')}\n"
-        caption_text += f"📺 <b>Uploader:</b> {info.get('uploader')}\n"
+        caption = f"🎬 <b>Title:</b> {info.get('title')}\n"
+        caption += f"📺 <b>Uploader:</b> {info.get('uploader')}\n"
         tags = info.get('tags')
-        if tags:
-            caption_text += f"🏷️ <b>Tags:</b> {', '.join(tags[:10])}"
-        else:
-            caption_text += "🏷️ <b>Tags:</b> Not available"
-
-        caption_text += "\n\n👑 Powered by @its_lucifer_star"
+        caption += f"🏷️ <b>Tags:</b> {', '.join(tags[:10])}" if tags else "🏷️ <b>Tags:</b> Not available"
+        caption += "\n\n👑 Powered by @its_lucifer_star"
 
         with open(filename, 'rb') as f:
-            await update.message.reply_video(f, caption=caption_text, parse_mode="HTML")
+            await update.message.reply_video(f, caption=caption, parse_mode="HTML")
 
         os.remove(filename)
 
     except Exception as e:
         await update.message.reply_text(f"⚠️ Error: {e}")
 
-# 📌 Audio download handler
+# 🎵 Audio Download
 async def download_audio(update: Update, context: ContextTypes.DEFAULT_TYPE):
     url = update.message.text
     if not is_valid_url(url):
@@ -72,6 +69,7 @@ async def download_audio(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ydl_opts = {
             'outtmpl': 'audio.%(ext)s',
             'format': 'bestaudio/best',
+            'cookiefile': 'cookies.txt',  # ✅ Uses Instagram login cookies
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',
@@ -81,35 +79,28 @@ async def download_audio(update: Update, context: ContextTypes.DEFAULT_TYPE):
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
             filename = ydl.prepare_filename(info)
-            # Ensure proper audio filename extension
-            if filename.endswith('.webm') or filename.endswith('.m4a'):
+            if filename.endswith(('.webm', '.m4a')):
                 filename = filename.rsplit('.', 1)[0] + '.mp3'
 
-        caption_text = f"🎵 <b>Title:</b> {info.get('title')}\n"
-        caption_text += f"📺 <b>Uploader:</b> {info.get('uploader')}\n"
+        caption = f"🎵 <b>Title:</b> {info.get('title')}\n"
+        caption += f"📺 <b>Uploader:</b> {info.get('uploader')}\n"
         tags = info.get('tags')
-        if tags:
-            caption_text += f"🏷️ <b>Tags:</b> {', '.join(tags[:10])}"
-        else:
-            caption_text += "🏷️ <b>Tags:</b> Not available"
-
-        caption_text += "\n\n👑 Powered by @its_lucifer_star"
+        caption += f"🏷️ <b>Tags:</b> {', '.join(tags[:10])}" if tags else "🏷️ <b>Tags:</b> Not available"
+        caption += "\n\n👑 Powered by @its_lucifer_star"
 
         with open(filename, 'rb') as f:
-            await update.message.reply_audio(f, caption=caption_text, parse_mode="HTML")
+            await update.message.reply_audio(f, caption=caption, parse_mode="HTML")
 
         os.remove(filename)
 
     except Exception as e:
         await update.message.reply_text(f"⚠️ Error: {e}")
 
-# 📌 Bot application setup
+# 🧠 Bot Setup
 app = ApplicationBuilder().token(TOKEN).build()
-
-# Handlers
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CommandHandler("audio", download_audio))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, download_video))
 
-# Run the bot
+# 🚀 Start the bot
 app.run_polling()
