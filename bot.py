@@ -5,7 +5,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, fil
 import yt_dlp
 
 # 🔐 Load Bot Token from environment variable
-TOKEN = os.getenv(8139941411:AAGgOIb-DUP35-qQ44lgfh6USVDHwtY1y18)
+TOKEN = os.getenv("8139941411:AAGgOIb-DUP35-qQ44lgfh6USVDHwtY1y18")
 
 # 📌 /start command handler
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
