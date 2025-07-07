@@ -39,7 +39,13 @@ async def download_video(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         ydl_opts = {
             'outtmpl': 'video.%(ext)s',
-            'format': 'best'
+            'format': 'best',
+            'quiet': True,
+            'noplaylist': True,
+            'ignoreerrors': True,
+            'extractor_args': {
+                'instagram': ['-skip', '-nologin'],
+            },
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
@@ -76,16 +82,22 @@ async def download_audio(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ydl_opts = {
             'outtmpl': 'audio.%(ext)s',
             'format': 'bestaudio/best',
+            'quiet': True,
+            'noplaylist': True,
+            'ignoreerrors': True,
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': 'mp3',
                 'preferredquality': '192',
             }],
+            'extractor_args': {
+                'instagram': ['-skip', '-nologin'],
+            },
         }
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
             filename = ydl.prepare_filename(info)
-            # Ensure proper audio filename extension
+            # Fix filename extension for audio
             if filename.endswith('.webm') or filename.endswith('.m4a'):
                 filename = filename.rsplit('.', 1)[0] + '.mp3'
 
